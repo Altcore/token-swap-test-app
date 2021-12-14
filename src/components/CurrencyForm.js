@@ -5,9 +5,9 @@ const CurrencyForm = () => {
   return (
     <form
       action="#"
-      className="w-full max-w-sm mx-auto bg-slate-200 pt-6 pb-8 px-8 rounded-xl border-solid border-4 border-slate-400"
+      className="w-full max-w-sm mx-auto bg-slate-200 dark:bg-gray-700 dark:text-gray-200 pt-6 pb-8 px-8 rounded-xl border-solid border-4 border-slate-400"
     >
-      <label className="block text-md font-medium text-gray-700">Swap</label>
+      <label className="block text-md font-medium text-gray-700 dark:text-gray-200">Swap</label>
     </form>
   );
 };
