@@ -4,6 +4,7 @@ import CurrencySelect from '../components/CurrencySelect';
 import CurrencyField from '../components/CurrencyField';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowAltCircleDown } from '@fortawesome/free-regular-svg-icons';
+import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 
 const CurrencyForm = ({ balance, tokens, pools }) => {
@@ -17,6 +18,7 @@ const CurrencyForm = ({ balance, tokens, pools }) => {
   const [isErrorOnConversion, setErrorOnConversion] = useState(false);
   const [isBalanceError, setBalanceError] = useState(false);
   const [isEmptyInputError, setEmptyInputError] = useState(false);
+  const [isSuccessfulTransaction, setSuccessfulTransaction] = useState(false);
 
   const isSubmitDisabled = () => {
     return isErrorOnConversion || isBalanceError || isEmptyInputError;
@@ -35,8 +37,12 @@ const CurrencyForm = ({ balance, tokens, pools }) => {
     ev.preventDefault();
     if (!currentCurrency || Number(currentCurrency) === 0) setEmptyInputError(true);
     if (isSubmitDisabled() || !currentCurrency) return;
+    setSuccessfulTransaction(true);
     setCurrentCurrency('');
     setResultCurrency('');
+    setTimeout(() => {
+      setSuccessfulTransaction(false);
+    }, 3000);
   };
 
   const handleFieldsChange = ({ target: { value, name } }) => {
@@ -111,61 +117,72 @@ const CurrencyForm = ({ balance, tokens, pools }) => {
       onSubmit={handleSubmit}
       className="w-full max-w-sm mx-auto bg-slate-200 dark:bg-gray-700 dark:text-gray-200 pt-6 pb-8 px-8 rounded-xl border-solid border-4 border-slate-400"
     >
-      <label htmlFor="amount" className="block text-md font-medium text-gray-700 dark:text-gray-200">
-        Swap
-      </label>
-      <div className="relative mt-2">
-        <CurrencyField name="amount" value={currentCurrency} handleChange={handleFieldsChange} />
-        <CurrencySelect
-          name="amount_type"
-          currencies={tokens}
-          currencyType={currentCurrencyType}
-          handleChange={handleFieldsChange}
-        />
-      </div>
-      <div className="relative text-center -mt-2 -mb-3 z-10">
-        <FontAwesomeIcon
-          icon={faArrowAltCircleDown}
-          size="2x"
-          className="shadow-xl bg-white text-violet-800 rounded-full p-0.5 dark:bg-gray-700 dark:text-indigo-500"
-        />
-      </div>
-      <div className="relative">
-        <CurrencyField
-          name="result_amount"
-          value={resultCurrency}
-          handleChange={handleFieldsChange}
-          onFocus={() => setResultAmountFieldFocus(true)}
-          onBlur={() => setResultAmountFieldFocus(false)}
-        />
-        <CurrencySelect
-          name="result_type"
-          currencies={tokens}
-          currencyType={resultCurrencyType}
-          handleChange={handleFieldsChange}
-        />
-      </div>
-      {!isErrorOnConversion && (
-        <p className="mt-1 text-gray-700 text-right dark:text-gray-200">
-          {`1 ${resultCurrencyType} = ${Number((1 / exchangeRate).toFixed(NUMERIC_SCALE))} ${currentCurrencyType}`}
-        </p>
+      {!isSuccessfulTransaction && (
+        <div>
+          <label htmlFor="amount" className="block text-md font-medium text-gray-700 dark:text-gray-200">
+            Swap
+          </label>
+          <div className="relative mt-2">
+            <CurrencyField name="amount" value={currentCurrency} handleChange={handleFieldsChange} />
+            <CurrencySelect
+              name="amount_type"
+              currencies={tokens}
+              currencyType={currentCurrencyType}
+              handleChange={handleFieldsChange}
+            />
+          </div>
+          <div className="relative text-center -mt-2 -mb-3 z-10">
+            <FontAwesomeIcon
+              icon={faArrowAltCircleDown}
+              size="2x"
+              className="shadow-xl bg-white text-violet-800 rounded-full p-0.5 dark:bg-gray-700 dark:text-indigo-500"
+            />
+          </div>
+          <div className="relative">
+            <CurrencyField
+              name="result_amount"
+              value={resultCurrency}
+              handleChange={handleFieldsChange}
+              onFocus={() => setResultAmountFieldFocus(true)}
+              onBlur={() => setResultAmountFieldFocus(false)}
+            />
+            <CurrencySelect
+              name="result_type"
+              currencies={tokens}
+              currencyType={resultCurrencyType}
+              handleChange={handleFieldsChange}
+            />
+          </div>
+          {!isErrorOnConversion && (
+            <p className="mt-1 text-gray-700 text-right dark:text-gray-200">
+              {`1 ${resultCurrencyType} = ${Number((1 / exchangeRate).toFixed(NUMERIC_SCALE))} ${currentCurrencyType}`}
+            </p>
+          )}
+          {isErrorOnConversion && <p className="mt-2 leading-tight text-red-500">Direct conversion is not possible.</p>}
+          {isBalanceError && (
+            <p className="mt-2 leading-tight text-red-500">The balance is insufficient for the transaction.</p>
+          )}
+          {isEmptyInputError && (
+            <p className="mt-2 leading-tight text-red-500">The field cannot be empty. Please enter a value.</p>
+          )}
+          <button
+            type="submit"
+            disabled={isSubmitDisabled()}
+            className={`w-full py-2 px-4 mt-4 font-medium text-white rounded-md ${
+              isSubmitDisabled() ? 'bg-slate-500' : 'bg-indigo-500 hover:bg-indigo-700'
+            }`}
+          >
+            Perform Swap
+          </button>
+        </div>
       )}
-      {isErrorOnConversion && <p className="mt-2 leading-tight text-red-500">Direct conversion is not possible.</p>}
-      {isBalanceError && (
-        <p className="mt-2 leading-tight text-red-500">The balance is insufficient for the transaction.</p>
+      {isSuccessfulTransaction && (
+        <div className="text-center">
+          <FontAwesomeIcon icon={faCheckCircle} size="4x" className="text-violet-800 dark:text-indigo-500" />
+          <p className="mt-4 text-xl font-medium text-green-800 dark:text-green-500">Success!</p>
+          <p className="mt-0.5 text-green-800 dark:text-green-500">Thank you for the transaction.</p>
+        </div>
       )}
-      {isEmptyInputError && (
-        <p className="mt-2 leading-tight text-red-500">The field cannot be empty. Please enter a value.</p>
-      )}
-      <button
-        type="submit"
-        disabled={isSubmitDisabled()}
-        className={`w-full py-2 px-4 mt-4 font-medium text-white rounded-md ${
-          isSubmitDisabled() ? 'bg-slate-500' : 'bg-indigo-500 hover:bg-indigo-700'
-        }`}
-      >
-        Perform Swap
-      </button>
     </form>
   );
 };
